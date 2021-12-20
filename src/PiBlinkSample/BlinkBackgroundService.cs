@@ -28,7 +28,6 @@ namespace PiBlinkSample
 
             pinController.OpenPin(_ledPin, PinMode.Output);
             pinController.OpenPin(_buttonPin, PinMode.InputPullDown);
-            //pinController.RegisterCallbackForPinValueChangedEvent(_buttonPin, PinEventTypes.Rising, onButtonPress);
 
             // Set led off to match initial state.
             pinController.Write(_ledPin, PinValue.Low);
@@ -53,25 +52,15 @@ namespace PiBlinkSample
                 {
                     _ledBlinkEnabled = !_ledBlinkEnabled;
                     _logger.LogInformation($"OnButtonDown, ledBlinkEnabled: {_ledBlinkEnabled}, ledOn: {_ledOn}");
-                    //await OnButtonDown();
                 }
-                //else if (lastButtonPinValue == PinValue.High && pinValue == PinValue.Low)
-                //{
-                //    _logger.LogInformation($"OnButtonUp");
-                //    await OnButtonUp();
-                //}
 
                 _lastButtonPinValue = pinValue;
+
+
                 await Task.Delay(50);
             }
 
             _logger.LogInformation("BlinkBackgroundService service is stopping.");
         }
-
-        //private void onButtonPress(object sender, PinValueChangedEventArgs args)
-        //{
-        //    _ledBlinkEnabled = !_ledBlinkEnabled;
-        //    _logger.LogInformation($"OnButtonDown ({args.PinNumber}), ledBlinkEnabled: {_ledBlinkEnabled}, ledOn: {_ledOn}");
-        //}
     }
 }
