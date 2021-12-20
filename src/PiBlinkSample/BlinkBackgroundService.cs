@@ -48,7 +48,7 @@ namespace PiBlinkSample
 
                 var pinValue = pinController.Read(_buttonPin);
 
-                if (pinValue == PinValue.High && _lastButtonPinValue == PinValue.Low)
+                if (pinValue == PinValue.High && _lastButtonPinValue == PinValue.Low) // Button was pressed
                 {
                     _ledBlinkEnabled = !_ledBlinkEnabled;
                     _logger.LogInformation($"OnButtonDown, ledBlinkEnabled: {_ledBlinkEnabled}, ledOn: {_ledOn}");
