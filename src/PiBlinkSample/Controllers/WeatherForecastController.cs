@@ -22,13 +22,14 @@ namespace PiBlinkSample.Controllers
         public IEnumerable<WeatherForecast> Get()
         {
 
-            _logger.LogTrace("Executing Get action method.");
+            _logger.LogInformation("Executing Get action method.");
 
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
                 TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)],
+                Counter = BlinkBackgroundService.Counter
             })
             .ToArray();
         }
