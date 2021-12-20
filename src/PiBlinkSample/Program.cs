@@ -1,6 +1,5 @@
 using PiBlinkSample;
 
-
 // Useful links
 // Deploying to raspberry pi: https://docs.microsoft.com/en-us/dotnet/iot/deployment
 // .Net 6 Program.cs changes: https://andrewlock.net/exploring-dotnet-6-part-2-comparing-webapplicationbuilder-to-the-generic-host/
