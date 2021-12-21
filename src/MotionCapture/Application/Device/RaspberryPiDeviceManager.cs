@@ -6,8 +6,6 @@ namespace MotionCapture.Application.Device
     {
         private readonly ILogger<RaspberryPiDeviceManager> _logger;
 
-        
-
         // TODO: Make these Options?
         private readonly int _redLedPin = 27;
         private readonly int _yellowLedPin = 22;
