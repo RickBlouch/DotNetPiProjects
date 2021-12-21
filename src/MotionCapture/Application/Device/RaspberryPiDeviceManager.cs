@@ -12,7 +12,7 @@ namespace MotionCapture.Application.Device
         private readonly int _greenLedPin = 4;
         private readonly int _buttonPin = 17;
         private readonly int _motionSensorPin = 23;
-        private readonly int _motionSensorStoppedLag = 10; // Seconds
+        private readonly int _motionSensorStoppedLag = 5; // Seconds
 
         private bool _initializeComplete = false;
         private DateTime? _motionStartedTimestampUtc = null;
