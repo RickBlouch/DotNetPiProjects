@@ -1,6 +1,6 @@
 ﻿using System.Device.Gpio;
 
-namespace PiBlinkSample
+namespace MotionCapture
 {
     public class BlinkBackgroundService : BackgroundService
     {

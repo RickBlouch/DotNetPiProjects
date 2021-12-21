@@ -1,4 +1,4 @@
-using PiBlinkSample;
+using MotionCapture;
 
 // Useful links
 // Deploying to raspberry pi: https://docs.microsoft.com/en-us/dotnet/iot/deployment

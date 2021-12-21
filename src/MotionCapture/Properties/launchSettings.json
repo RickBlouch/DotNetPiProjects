@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "BlinkSample": {
+    "MotionCapture": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
