@@ -2,8 +2,8 @@
 {
     public enum LedColor
     {
+        Green,
         Red,
-        Yellow,
-        Green
+        Yellow        
     }
 }

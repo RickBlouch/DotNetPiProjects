@@ -26,6 +26,9 @@ namespace MotionCapture
             _deviceManager.RegisterForButtonPressCallback(OnButtonPress);
             _deviceManager.DisableLed(LedColor.Green);
 
+            _deviceManager.EnableLed(LedColor.Red);
+            _deviceManager.EnableLed(LedColor.Yellow);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 if (_ledBlinkEnabled)
@@ -48,6 +51,8 @@ namespace MotionCapture
         {
             _ledBlinkEnabled = !_ledBlinkEnabled;
             _logger.LogInformation($"OnButtonPress, ledBlinkEnabled: {_ledBlinkEnabled}, ledOn: {_ledOn}");
+
+            _deviceManager.DisableLed(LedColor.Red);
 
             return Task.CompletedTask;
         }

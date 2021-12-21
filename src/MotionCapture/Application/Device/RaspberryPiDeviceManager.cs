@@ -5,8 +5,10 @@ namespace MotionCapture.Application.Device
     public class RaspberryPiDeviceManager : BackgroundService, IDeviceManager
     {
         private readonly ILogger<RaspberryPiDeviceManager> _logger;
-        
+
         // TODO: Make these Options?
+        private readonly int _redLedPin = 27;
+        private readonly int _yellowLedPin = 22;
         private readonly int _greenLedPin = 4;
         private readonly int _buttonPin = 17;
 
@@ -42,6 +44,10 @@ namespace MotionCapture.Application.Device
             {
                 case LedColor.Green:
                     return _greenLedPin;
+                case LedColor.Red:
+                    return _redLedPin;
+                case LedColor.Yellow:
+                    return _yellowLedPin;
                 default:
                     throw new Exception($"Unsupported {nameof(LedColor)} - {color}");
             }
@@ -85,17 +91,25 @@ namespace MotionCapture.Application.Device
 
                 await Task.Delay(50);
             }
+
+            // Turn off hardware
+
+            DisableLed(LedColor.Green);
+            DisableLed(LedColor.Red);
+            DisableLed(LedColor.Yellow);
         }
 
         private void Initialize()
         {
             _gpioController.Value.OpenPin(_greenLedPin, PinMode.Output);
+            _gpioController.Value.OpenPin(_redLedPin, PinMode.Output);
+            _gpioController.Value.OpenPin(_yellowLedPin, PinMode.Output);
             _gpioController.Value.OpenPin(_buttonPin, PinMode.InputPullDown);
 
-            //DisableLed(LedColor.Red);
-            //DisableLed(LedColor.Yellow);
             DisableLed(LedColor.Green);
-
+            DisableLed(LedColor.Red);
+            DisableLed(LedColor.Yellow);
+            
             _initializeComplete = true;
         }
     }
