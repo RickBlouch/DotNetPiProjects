@@ -24,24 +24,24 @@ namespace MotionCapture
             await _deviceManager.WaitForInitialize();
 
             _deviceManager.RegisterForButtonPressCallback(OnButtonPress);
-            _deviceManager.DisableLed(LedColor.Green);
+            _deviceManager.RegisterForMontionSensorCallback(OnMotionStarted, OnMotionStopped);
 
-            _deviceManager.EnableLed(LedColor.Red);
-            _deviceManager.EnableLed(LedColor.Yellow);
+            //_deviceManager.EnableLed(LedColor.Red);
+            //_deviceManager.EnableLed(LedColor.Yellow);
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (_ledBlinkEnabled)
-                {
-                    _ledOn = !_ledOn;
-                    _deviceManager.ToggleLed(LedColor.Green, _ledOn);
-                }
-                else if (_ledOn)
-                {
-                    _logger.LogDebug("ledBlinkEnabled = false, but the LED is still on.  Turning it LED...");
-                    _deviceManager.DisableLed(LedColor.Green);
-                    _ledOn = false;
-                }
+                //if (_ledBlinkEnabled)
+                //{
+                //    _ledOn = !_ledOn;
+                //    _deviceManager.ToggleLed(LedColor.Green, _ledOn);
+                //}
+                //else if (_ledOn)
+                //{
+                //    _logger.LogDebug("ledBlinkEnabled = false, but the LED is still on.  Turning it LED...");
+                //    _deviceManager.DisableLed(LedColor.Green);
+                //    _ledOn = false;
+                //}
 
                 await Task.Delay(250);
             }
@@ -49,10 +49,29 @@ namespace MotionCapture
 
         private Task OnButtonPress(CancellationToken token)
         {
-            _ledBlinkEnabled = !_ledBlinkEnabled;
-            _logger.LogInformation($"OnButtonPress, ledBlinkEnabled: {_ledBlinkEnabled}, ledOn: {_ledOn}");
+            //_ledBlinkEnabled = !_ledBlinkEnabled;
+            //_logger.LogDebug($"OnButtonPress, ledBlinkEnabled: {_ledBlinkEnabled}, ledOn: {_ledOn}");
 
             _deviceManager.DisableLed(LedColor.Red);
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnMotionStarted(CancellationToken token)
+        {
+            _logger.LogInformation("OnMotionStarted handler.");
+
+            _deviceManager.EnableLed(LedColor.Red);
+            _deviceManager.EnableLed(LedColor.Yellow);
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnMotionStopped(CancellationToken token)
+        {
+            _logger.LogInformation("OnMotionStopped handler.");
+
+            _deviceManager.DisableLed(LedColor.Yellow);
 
             return Task.CompletedTask;
         }

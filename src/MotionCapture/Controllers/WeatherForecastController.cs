@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using MotionCapture.Application.Device;
 
 namespace MotionCapture.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
@@ -12,10 +13,12 @@ namespace MotionCapture.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IDeviceManager _deviceManager;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IDeviceManager deviceManager)
         {
             _logger = logger;
+            _deviceManager = deviceManager;
         }
 
         [HttpGet]
@@ -31,6 +34,14 @@ namespace MotionCapture.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+
+        [HttpGet]
+        public IActionResult Reset()
+        {
+            _deviceManager.Reset();
+
+            return Ok();
         }
     }
 }

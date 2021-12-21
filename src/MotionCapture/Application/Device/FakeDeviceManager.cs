@@ -24,6 +24,16 @@
             return;
         }
 
+        public void RegisterForMontionSensorCallback(Func<CancellationToken, Task> onMotionStarted, Func<CancellationToken, Task> onMotionStopped)
+        {
+            return;
+        }
+
+        public void Reset()
+        {
+            return;
+        }
+
         public void ToggleLed(LedColor color, bool enable)
         {
             return;

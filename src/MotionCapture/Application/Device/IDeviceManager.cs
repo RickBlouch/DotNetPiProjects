@@ -10,6 +10,10 @@
 
         void ToggleLed(LedColor color, bool enable);
 
-        void RegisterForButtonPressCallback(Func<CancellationToken, Task> func);  // TODO: ValueTask?
+        void RegisterForButtonPressCallback(Func<CancellationToken, Task> onButtonPress);  // TODO: ValueTask?
+
+        void RegisterForMontionSensorCallback(Func<CancellationToken, Task> onMotionStarted, Func<CancellationToken, Task> onMotionStopped);
+
+        void Reset();
     }
 }
