@@ -10,8 +10,6 @@ namespace MotionCapture.Application.Device
         private readonly int _greenLedPin = 4;
         private readonly int _buttonPin = 17;
 
-        // Because we're getting button pin value every x milliseconds, we track the last pin value so
-        // we can detect when the button went from low to high and trigger our button press callbacks.
         private PinValue _lastButtonPinValue = PinValue.Low;
         private bool _initializeComplete = false;
 
@@ -73,16 +71,16 @@ namespace MotionCapture.Application.Device
 
                 if (pinValue == PinValue.High && _lastButtonPinValue == PinValue.Low) // Button was pressed
                 {
-                    //_logger.LogDebug($"OnButtonPress firing.");
-
                     for (var i = 0; i < _buttonPressCallbacks.Count; i++) // Thread safe - other threads can add to the list, but nothing can remove from it.
                     {
                         await _buttonPressCallbacks[i](stoppingToken);
                     }
 
-                    //_logger.LogDebug($"OnButtonPress fired.");
+                    _logger.LogTrace($"OnButtonPress fired.");
                 }
 
+                // Because we're getting button pin value every x milliseconds, we track the last pin value so
+                // we can detect when the button went from low to high and trigger our button press callbacks.
                 _lastButtonPinValue = pinValue;
 
                 await Task.Delay(50);

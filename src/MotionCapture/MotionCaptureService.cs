@@ -35,7 +35,7 @@ namespace MotionCapture
                 }
                 else if (_ledOn)
                 {
-                    _logger.LogInformation($"ledBlinkEnabled = false, but the LED is still on.  Turning it LED...");
+                    _logger.LogDebug("ledBlinkEnabled = false, but the LED is still on.  Turning it LED...");
                     _deviceManager.DisableLed(LedColor.Green);
                     _ledOn = false;
                 }
