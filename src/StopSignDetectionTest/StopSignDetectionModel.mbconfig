@@ -1,0 +1,36 @@
+﻿{
+  "TrainingTime": 2147482,
+  "Scenario": "ObjectDetection",
+  "DataSource": {
+    "Type": "Vott",
+    "Version": 1,
+    "FilePath": "C:\\StopSignImages\\vott-json-export\\StopSignObjDetection-export.json"
+  },
+  "Environment": {
+    "Type": "Azure",
+    "Version": 1,
+    "SubscriptionID": "ce4f8ce9-484b-4799-a4e4-dbd20b2aa84c",
+    "ResourceGroupName": "StopSignProject",
+    "WorkspaceName": "MLBasicWorkspace",
+    "ComputeName": "TestCompute",
+    "Location": "eastus",
+    "ExperimentName": "Objectdetection"
+  },
+  "RunHistory": {
+    "Version": 0,
+    "Type": "Result",
+    "Trials": [
+      {
+        "Version": 0,
+        "Type": "Trial",
+        "TrainerName": "Azure AutoML Algorithm",
+        "Score": 1.0,
+        "RuntimeInSeconds": 917.63991049999993
+      }
+    ],
+    "Pipeline": "[{\"OutputColumnName\":\"input\",\"ImageFolder\":\"\",\"InputColumnName\":\"ImageSource\",\"EstimatorType\":\"LoadImages\",\"Inputs\":[\"ImageSource\"],\"Outputs\":[\"input\"]},{\"OutputColumnName\":\"input\",\"InputColumnName\":\"input\",\"ImageWidth\":\"800\",\"ImageHeight\":\"600\",\"CropAnchor\":\"Center\",\"Resizing\":\"Fill\",\"EstimatorType\":\"ResizeImages\",\"Inputs\":[\"input\"],\"Outputs\":[\"input\"]},{\"OutputColumnName\":\"input\",\"InputColumnName\":\"input\",\"ColorsToExtract\":\"Rgb\",\"OrderOfExtraction\":\"ARGB\",\"EstimatorType\":\"ExtractPixels\",\"Inputs\":[\"input\"],\"Outputs\":[\"input\"]},{\"ModelFile\":\"C:\\\\Users\\\\rblouch\\\\source\\\\repos\\\\DotNetPiProjects\\\\src\\\\StopSignDetection\\\\StopSignDetectionModel.onnx\",\"EstimatorType\":\"ApplyOnnxModel\",\"Inputs\":null,\"Outputs\":null}]",
+    "MetricName": "accuracy"
+  },
+  "Type": "TrainingConfig",
+  "Version": 1
+}
