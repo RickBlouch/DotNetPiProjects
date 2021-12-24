@@ -14,6 +14,8 @@
 
         void RegisterForMontionSensorCallback(Func<CancellationToken, Task> onMotionStarted, Func<CancellationToken, Task> onMotionStopped);
 
+        Task StartPictures();
+        void StopPictures();
         void Reset();
     }
 }

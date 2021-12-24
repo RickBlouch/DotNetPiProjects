@@ -34,6 +34,21 @@
             return;
         }
 
+        public Task StartPictures()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StopPictures()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task TakePicture()
+        {
+            throw new NotImplementedException();
+        }
+
         public void ToggleLed(LedColor color, bool enable)
         {
             return;

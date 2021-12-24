@@ -1,4 +1,12 @@
 ﻿using System.Device.Gpio;
+using MMALSharp;
+using MMALSharp.Common;
+using MMALSharp.Common.Utility;
+using MMALSharp.Components;
+using MMALSharp.Handlers;
+using MMALSharp.Native;
+using MMALSharp.Ports;
+using MotionCapture.Application.Device.Mmal;
 
 namespace MotionCapture.Application.Device
 {
@@ -24,6 +32,9 @@ namespace MotionCapture.Application.Device
         private List<Func<CancellationToken, Task>> _buttonPressCallbacks = new();
         private List<Func<CancellationToken, Task>> _motionStartedCallbacks = new();
         private List<Func<CancellationToken, Task>> _motionStoppedCallbacks = new();
+
+        private MMALCamera? _camera;
+        CancellationTokenSource? _cameraCaptureCts;
 
         public RaspberryPiDeviceManager(ILogger<RaspberryPiDeviceManager> logger)
         {
@@ -63,7 +74,7 @@ namespace MotionCapture.Application.Device
         public void ToggleLed(LedColor color, bool enable)
         {
             if (enable) { EnableLed(color); }
-            else { DisableLed(color); }  
+            else { DisableLed(color); }
         }
 
         public void RegisterForButtonPressCallback(Func<CancellationToken, Task> onButtonPress)
@@ -75,6 +86,80 @@ namespace MotionCapture.Application.Device
         {
             _motionStartedCallbacks.Add(onMotionStarted);
             _motionStoppedCallbacks.Add(onMotionStopped);
+        }
+
+        public async Task StartPictures()
+        {
+            if (_camera == null) { _logger.LogInformation("Camera is null.");  return; }
+
+            _logger.LogInformation("Starting picture capture");
+
+            //using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/Pictures/MotionCapture/", "jpg"))
+            //{
+            //    await _camera.TakePicture(imgCaptureHandler, MMALEncoding.JPEG, MMALEncoding.I420);
+            //}
+
+
+            //////////////////////////////
+
+            //using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/Pictures/MotionCapture/", "jpg"))
+            //using (var splitter = new MMALSplitterComponent())
+            //using (var imgEncoder = new MMALImageEncoder(continuousCapture: true))
+            //using (var nullSink = new MMALNullSinkComponent())
+            //{
+            //    _camera.ConfigureCameraSettings();
+
+            //    var portConfig = new MMALPortConfig(MMALEncoding.JPEG, MMALEncoding.I420, 90);
+
+            //    // Create our component pipeline.         
+            //    imgEncoder.ConfigureOutputPort(portConfig, imgCaptureHandler);
+
+            //    _camera.Camera.VideoPort.ConnectTo(splitter);
+            //    splitter.Outputs[0].ConnectTo(imgEncoder);
+            //    _camera.Camera.PreviewPort.ConnectTo(nullSink);
+
+            //    // Camera warm up time
+            //    await Task.Delay(2000);
+
+            //    _cameraCaptureCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+            //    // Process images for x seconds.        
+            //    await _camera.ProcessAsync(_camera.Camera.VideoPort, _cameraCaptureCts.Token);
+
+            //}
+
+            ////////////////
+
+            var folder = DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
+
+            using (var imgCaptureHandler = new CustomImageStreamCaptureHandler($"/home/pi/Pictures/MotionCapture/{folder}/Capture.jpg"))
+            {
+
+                // hack set _increment here to 100?  all images will start with 100 then and increment up.
+                // OR Override FileStreamCaptureHandler and implement NewFile method.
+
+                _cameraCaptureCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+                await _camera.TakePictureTimeout(
+                    imgCaptureHandler,
+                    MMALEncoding.JPEG,
+                    MMALEncoding.I420,
+                    _cameraCaptureCts.Token,
+                    true);
+            }
+
+
+            // Camera TODOs
+            //  - Figure out how to capture 10 frames per second with highest quality possible
+            //  - Figure out what camera 'warmup' time is and if the camera can be persistently warmed up instead of warming up when it's time to capture
+            //  - Figure out if it makes sense to use the camera to detect motion instead of using the PIR sensor (can we measure power usage of both?)
+
+        }
+
+        public void StopPictures()
+        {
+            _logger.LogInformation("Cancelling picture capture");
+            _cameraCaptureCts?.Cancel();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -143,6 +228,8 @@ namespace MotionCapture.Application.Device
             }
 
             Reset();
+
+            _camera?.Cleanup();
         }
 
         private void Initialize()
@@ -153,8 +240,18 @@ namespace MotionCapture.Application.Device
             _gpioController.Value.OpenPin(_buttonPin, PinMode.InputPullDown);
             _gpioController.Value.OpenPin(_motionSensorPin, PinMode.Input);
 
+            _camera = MMALCamera.Instance;
+
+            MMALCameraConfig.ExposureCompensation = (int)MMAL_PARAM_EXPOSUREMODE_T.MMAL_PARAM_EXPOSUREMODE_SPORTS;
+            //MMALCameraConfig.StillBurstMode = true;
+            MMALCameraConfig.StillResolution = new Resolution(640, 480); // Set to 640 x 480. Default is 1280 x 720.
+            //MMALCameraConfig.StillResolution = new Resolution(800, 600); // Set to 640 x 480. Default is 1280 x 720.
+            MMALCameraConfig.StillFramerate = new MMAL_RATIONAL_T(30, 1); // Set to 20fps. Default is 30fps.
+            //MMALCameraConfig.ShutterSpeed = 2000000; // Set to 2s exposure time. Default is 0 (auto).
+            //MMALCameraConfig.ISO = 400; // Set ISO to 400. Default is 0 (auto).
+
             Reset();
-            
+
             _initializeComplete = true;
         }
 

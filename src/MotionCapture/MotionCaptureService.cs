@@ -9,7 +9,7 @@ namespace MotionCapture
 
         private bool _ledBlinkEnabled = false;
         private bool _ledOn = false;
-        
+
         public MotionCaptureService(ILogger<MotionCaptureService> logger, IDeviceManager deviceManager)
         {
             _logger = logger;
@@ -31,17 +31,17 @@ namespace MotionCapture
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (_ledBlinkEnabled)
-                {
-                    _ledOn = !_ledOn;
-                    _deviceManager.ToggleLed(LedColor.Yellow, _ledOn);
-                }
-                else if (_ledOn)
-                {
-                    _logger.LogDebug("ledBlinkEnabled = false, but the LED is still on.  Turning it LED...");
-                    _deviceManager.DisableLed(LedColor.Yellow);
-                    _ledOn = false;
-                }
+                //if (_ledBlinkEnabled)
+                //{
+                //    _ledOn = !_ledOn;
+                //    _deviceManager.ToggleLed(LedColor.Yellow, _ledOn);
+                //}
+                //else if (_ledOn)
+                //{
+                //    _logger.LogDebug("ledBlinkEnabled = false, but the LED is still on.  Turning it LED...");
+                //    _deviceManager.DisableLed(LedColor.Yellow);
+                //    _ledOn = false;
+                //}
 
                 await Task.Delay(250);
             }
@@ -49,8 +49,10 @@ namespace MotionCapture
 
         private Task OnButtonPress(CancellationToken token)
         {
-            _ledBlinkEnabled = !_ledBlinkEnabled;
+            //_ledBlinkEnabled = !_ledBlinkEnabled;
             //_logger.LogDebug($"OnButtonPress, ledBlinkEnabled: {_ledBlinkEnabled}, ledOn: {_ledOn}");
+
+            Task.Run(() => _deviceManager.StartPictures());
 
             return Task.CompletedTask;
         }
