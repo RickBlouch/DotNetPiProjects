@@ -16,6 +16,9 @@
 
         Task StartPictures();
         void StopPictures();
+
+        Task StartVideo();
+
         void Reset();
     }
 }

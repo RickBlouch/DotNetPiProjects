@@ -39,6 +39,11 @@
             throw new NotImplementedException();
         }
 
+        public Task StartVideo()
+        {
+            throw new NotImplementedException();
+        }
+
         public void StopPictures()
         {
             throw new NotImplementedException();

@@ -52,7 +52,8 @@ namespace MotionCapture
             //_ledBlinkEnabled = !_ledBlinkEnabled;
             //_logger.LogDebug($"OnButtonPress, ledBlinkEnabled: {_ledBlinkEnabled}, ledOn: {_ledOn}");
 
-            Task.Run(() => _deviceManager.StartPictures());
+            //Task.Run(() => _deviceManager.StartPictures());
+            Task.Run(() => _deviceManager.StartVideo());
 
             return Task.CompletedTask;
         }

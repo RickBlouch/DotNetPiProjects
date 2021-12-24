@@ -162,6 +162,22 @@ namespace MotionCapture.Application.Device
             _cameraCaptureCts?.Cancel();
         }
 
+        public async Task StartVideo()
+        {
+            if (_camera == null) { _logger.LogInformation("Camera is null."); return; }
+
+            _logger.LogInformation("Starting picture capture");
+
+            using (var vidCaptureHandler = new VideoStreamCaptureHandler("/home/pi/Pictures/MotionCapture/", "h264"))
+            {
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+                await _camera.TakeVideo(vidCaptureHandler, cts.Token);
+            }
+
+            _logger.LogInformation("Finished picture capture");
+        }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("RaspberryPiDeviceManager service is starting.");
@@ -242,13 +258,16 @@ namespace MotionCapture.Application.Device
 
             _camera = MMALCamera.Instance;
 
-            MMALCameraConfig.ExposureCompensation = (int)MMAL_PARAM_EXPOSUREMODE_T.MMAL_PARAM_EXPOSUREMODE_SPORTS;
+            //MMALCameraConfig.ExposureCompensation = (int)MMAL_PARAM_EXPOSUREMODE_T.MMAL_PARAM_EXPOSUREMODE_SPORTS;
             //MMALCameraConfig.StillBurstMode = true;
-            MMALCameraConfig.StillResolution = new Resolution(640, 480); // Set to 640 x 480. Default is 1280 x 720.
+            //MMALCameraConfig.StillResolution = new Resolution(640, 480); // Set to 640 x 480. Default is 1280 x 720.
             //MMALCameraConfig.StillResolution = new Resolution(800, 600); // Set to 640 x 480. Default is 1280 x 720.
-            MMALCameraConfig.StillFramerate = new MMAL_RATIONAL_T(30, 1); // Set to 20fps. Default is 30fps.
+            //MMALCameraConfig.StillFramerate = new MMAL_RATIONAL_T(30, 1); // Set to 20fps. Default is 30fps.
             //MMALCameraConfig.ShutterSpeed = 2000000; // Set to 2s exposure time. Default is 0 (auto).
             //MMALCameraConfig.ISO = 400; // Set ISO to 400. Default is 0 (auto).
+
+            MMALCameraConfig.VideoResolution = new Resolution(640, 480);
+            MMALCameraConfig.VideoFramerate = new MMAL_RATIONAL_T(40, 1);
 
             Reset();
 
