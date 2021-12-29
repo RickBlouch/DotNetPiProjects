@@ -1,6 +1,9 @@
 using System.Runtime.InteropServices;
+using MotionCapture.Application;
 using MotionCapture.Application.Device;
-using MotionCapture;
+
+// This version of the project uses the PIR sensor to detect motion and then enables the video camera.  Once motion has been detected, there is an 8 second
+// delay on turning off the camera.  If motion is detected during this window, the window resets and the camera continues to record.
 
 // Useful links
 // Deploying to raspberry pi: https://docs.microsoft.com/en-us/dotnet/iot/deployment

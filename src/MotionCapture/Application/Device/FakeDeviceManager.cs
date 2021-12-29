@@ -44,7 +44,12 @@
             throw new NotImplementedException();
         }
 
-        public void StopPictures()
+        public Task StartVideoFpsCalc()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StopCamera()
         {
             throw new NotImplementedException();
         }

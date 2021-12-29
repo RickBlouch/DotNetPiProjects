@@ -18,6 +18,7 @@ namespace ImageDetectionYoloV4
         const string imageOutputFolder = @"Assets\Output";
 
         static readonly string[] classesNames = new string[] { "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed", "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush" };
+        
 
         static void Main()
         {
@@ -59,14 +60,20 @@ namespace ImageDetectionYoloV4
             // save model
             //mlContext.Model.Save(model, predictionEngine.OutputSchema, Path.ChangeExtension(modelPath, "zip"));
             var sw = new Stopwatch();
-            sw.Start();
-            foreach (string imageName in new string[] { "kite.jpg", "dog_cat.jpg", "StopSignTest.jpg", "ski.jpg", "ski2.jpg" })
+
+            //foreach (string imageName in new string[] { "Desktop.jpg", "kite.jpg", "dog_cat.jpg", "StopSignTest.jpg", "ski.jpg", "ski2.jpg", "Desktop-416.png" })
+            foreach (string imageName in new string[] { "Desktop-416.png" })
             {
                 using (var bitmap = new Bitmap(Image.FromFile(Path.Combine(imageFolder, imageName))))
                 {
+                    sw.Restart();
+
                     // predict
                     var predict = predictionEngine.Predict(new YoloV4BitmapData() { Image = bitmap });
                     var results = predict.GetResults(classesNames, 0.3f, 0.7f);
+
+                    sw.Stop();
+                    Console.WriteLine($"Done in {sw.ElapsedMilliseconds}ms.");
 
                     using (var g = Graphics.FromImage(bitmap))
                     {
@@ -90,8 +97,9 @@ namespace ImageDetectionYoloV4
                     }
                 }
             }
-            sw.Stop();
-            Console.WriteLine($"Done in {sw.ElapsedMilliseconds}ms.");
+
+            Console.WriteLine("Press any key to exit");
+            Console.ReadKey();
         }
     }
 }

@@ -13,6 +13,7 @@ namespace MotionCapture.Application.Device
     public class RaspberryPiDeviceManager : BackgroundService, IDeviceManager
     {
         private readonly ILogger<RaspberryPiDeviceManager> _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
         // TODO: Make these Options?
         private readonly int _redLedPin = 27;
@@ -20,7 +21,7 @@ namespace MotionCapture.Application.Device
         private readonly int _greenLedPin = 4;
         private readonly int _buttonPin = 17;
         private readonly int _motionSensorPin = 23;
-        private readonly int _motionSensorStoppedLag = 5; // Seconds
+        private readonly int _motionSensorStoppedLag = 7; // Seconds
 
         private bool _initializeComplete = false;
         private DateTime? _motionStartedTimestampUtc = null;
@@ -36,9 +37,10 @@ namespace MotionCapture.Application.Device
         private MMALCamera? _camera;
         CancellationTokenSource? _cameraCaptureCts;
 
-        public RaspberryPiDeviceManager(ILogger<RaspberryPiDeviceManager> logger)
+        public RaspberryPiDeviceManager(ILoggerFactory loggerFactory)
         {
-            _logger = logger;
+            _loggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<RaspberryPiDeviceManager>();
         }
 
         public async Task WaitForInitialize()
@@ -94,7 +96,7 @@ namespace MotionCapture.Application.Device
 
             _logger.LogInformation("Starting picture capture");
 
-            //using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/Pictures/MotionCapture/", "jpg"))
+            //using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/Pictures/MotionCapture2/", "jpg"))
             //{
             //    await _camera.TakePicture(imgCaptureHandler, MMALEncoding.JPEG, MMALEncoding.I420);
             //}
@@ -102,7 +104,7 @@ namespace MotionCapture.Application.Device
 
             //////////////////////////////
 
-            //using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/Pictures/MotionCapture/", "jpg"))
+            //using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/Pictures/MotionCapture2/", "jpg"))
             //using (var splitter = new MMALSplitterComponent())
             //using (var imgEncoder = new MMALImageEncoder(continuousCapture: true))
             //using (var nullSink = new MMALNullSinkComponent())
@@ -132,7 +134,7 @@ namespace MotionCapture.Application.Device
 
             var folder = DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
 
-            using (var imgCaptureHandler = new CustomImageStreamCaptureHandler($"/home/pi/Pictures/MotionCapture/{folder}/Capture.jpg"))
+            using (var imgCaptureHandler = new CustomImageStreamCaptureHandler($"/home/pi/Pictures/MotionCapture2/{folder}/Capture.jpg"))
             {
 
                 // hack set _increment here to 100?  all images will start with 100 then and increment up.
@@ -156,26 +158,74 @@ namespace MotionCapture.Application.Device
 
         }
 
-        public void StopPictures()
+        public void StopCamera()
         {
-            _logger.LogInformation("Cancelling picture capture");
+            _logger.LogInformation("Cancelling camera capture.");
             _cameraCaptureCts?.Cancel();
         }
 
         public async Task StartVideo()
         {
-            if (_camera == null) { _logger.LogInformation("Camera is null."); return; }
+            if (_camera == null) { _logger.LogError("Camera is null."); return; }
+            if (_cameraCaptureCts != null) { _logger.LogError("Camera capture cancellation token already has a value."); return; }
 
-            _logger.LogInformation("Starting picture capture");
+            _logger.LogInformation("Starting video capture");
 
-            using (var vidCaptureHandler = new VideoStreamCaptureHandler("/home/pi/Pictures/MotionCapture/", "h264"))
+            MMALCameraConfig.SensorMode = MMALSensorMode.Mode5;
+            MMALCameraConfig.VideoFramerate = new MMAL_RATIONAL_T(24, 1);
+            //MMALCameraConfig.VideoResolution = new Resolution(810, 648);
+            MMALCameraConfig.VideoResolution = new Resolution(640, 480);
+
+            using (var vidCaptureHandler = new VideoStreamCaptureHandler("/home/pi/Pictures/MotionCapture2/", "h264"))
             {
-                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                _cameraCaptureCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-                await _camera.TakeVideo(vidCaptureHandler, cts.Token);
+                // Issue: This overall approach has the issue that motion can be detected, video kicked off, motion stops, cancellation token is cancelled and
+                // then recording begins.  This happens because TakeVideo has an internal warmup period.  It seems that if the cancellation token is cancelled
+                // during that warmup, the video is capture and the token cancellation is not repsected.
+                await _camera.TakeVideo(vidCaptureHandler, _cameraCaptureCts.Token);
             }
 
-            _logger.LogInformation("Finished picture capture");
+            _logger.LogInformation("Finished video capture");
+            _cameraCaptureCts = null;
+        }
+
+        public async Task StartVideoFpsCalc()
+        {
+            if (_camera == null) { _logger.LogInformation("Camera is null."); return; }
+
+            MMALCameraConfig.SensorMode = MMALSensorMode.Mode5;
+            MMALCameraConfig.VideoFramerate = new MMAL_RATIONAL_T(10, 1);
+            //MMALCameraConfig.VideoResolution = new Resolution(810, 648);
+            MMALCameraConfig.VideoResolution = new Resolution(640, 480);
+
+            using (var handler = new ImageStreamCaptureHandler("/home/pi/Pictures/MotionCapture2/Test/", "jpg"))
+            //using (var handler = new InMemoryCaptureHandler())
+            //using (var handler = new FpsCaptureHandler())
+            using (var splitter = new MMALSplitterComponent())
+            using (var imgEncoder = new MMALImageEncoder(continuousCapture: true))
+            using (var nullSink = new MMALNullSinkComponent())
+            {
+                _camera.ConfigureCameraSettings();
+
+                var portConfig = new MMALPortConfig(MMALEncoding.JPEG, MMALEncoding.I420, quality: 90);
+
+                // Create our component pipeline.         
+                imgEncoder.ConfigureOutputPort(portConfig, handler);
+                                
+                _camera.Camera.VideoPort.ConnectTo(splitter);
+                splitter.Outputs[0].ConnectTo(imgEncoder);
+                _camera.Camera.PreviewPort.ConnectTo(nullSink);
+
+                // Camera warm up time
+                await Task.Delay(2000);
+
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+                // Process images for x seconds.        
+                await _camera.ProcessAsync(_camera.Camera.VideoPort, cts.Token);
+            }
+
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -258,6 +308,9 @@ namespace MotionCapture.Application.Device
 
             _camera = MMALCamera.Instance;
 
+
+            MMALLog.LoggerFactory = _loggerFactory;
+
             //MMALCameraConfig.ExposureCompensation = (int)MMAL_PARAM_EXPOSUREMODE_T.MMAL_PARAM_EXPOSUREMODE_SPORTS;
             //MMALCameraConfig.StillBurstMode = true;
             //MMALCameraConfig.StillResolution = new Resolution(640, 480); // Set to 640 x 480. Default is 1280 x 720.
@@ -266,8 +319,7 @@ namespace MotionCapture.Application.Device
             //MMALCameraConfig.ShutterSpeed = 2000000; // Set to 2s exposure time. Default is 0 (auto).
             //MMALCameraConfig.ISO = 400; // Set ISO to 400. Default is 0 (auto).
 
-            MMALCameraConfig.VideoResolution = new Resolution(640, 480);
-            MMALCameraConfig.VideoFramerate = new MMAL_RATIONAL_T(40, 1);
+            //MMALLog.Logger.LogInformation("test logger");
 
             Reset();
 
@@ -279,6 +331,8 @@ namespace MotionCapture.Application.Device
             DisableLed(LedColor.Green);
             DisableLed(LedColor.Red);
             DisableLed(LedColor.Yellow);
+
+            StopCamera();
         }
     }
 }

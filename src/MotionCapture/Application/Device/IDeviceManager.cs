@@ -15,9 +15,11 @@
         void RegisterForMontionSensorCallback(Func<CancellationToken, Task> onMotionStarted, Func<CancellationToken, Task> onMotionStopped);
 
         Task StartPictures();
-        void StopPictures();
+        void StopCamera();
 
         Task StartVideo();
+
+        Task StartVideoFpsCalc();
 
         void Reset();
     }
